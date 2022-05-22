@@ -124,4 +124,4 @@ class AaveGraphConnector:
 # %%
 aave_graph = AaveGraphConnector()
 graph_data = aave_graph.get_reserve_stats(token="dai", lookback_hours=100)
-# %%
+# %
