@@ -5,15 +5,18 @@ import math
 from ex_01_graph_connector import AaveGraphConnector
 
 # %%
+"""Define a mapping from token name to number of decimals in the contract.
+We need this because all of the subgraph data is decimal-adjusted
+"""
 TOKEN_TO_DECIMALS = {"dai": 18, "usdc": 6, "usdt": 6}
 
 # %%
 
 
 class AaveDataCleaner:
-    def __init__(self) -> None:
-        ...
-
+    """Class for cleaning up the data from the subgraph and returning it
+        as a pandas DF
+    """
     def _decimal_adj(self, decimals) -> float:
         return math.pow(10, decimals)
 
@@ -24,14 +27,21 @@ class AaveDataCleaner:
         return val / self._decimal_adj(TOKEN_TO_DECIMALS[token])
 
     def clean_data(self, raw_data: Sequence[dict], token: str):
+        """
+        Main function for cleaning data. Takes the raw data from the subgraph
+            and returns it as a pandas DF 
+        """
         df = pd.DataFrame(raw_data)
 
+        # If there is no data, there's no need to clean
         if len(df) == 0:
             return df
 
         else:
+            # Convert the timestamp string to a pandas datetime object
             df["timestamp"] = pd.to_datetime(df["timestamp"], unit='s')
 
+            # Adjust every column by the constant factor that Aave uses
             for col in [
                     'variableBorrowRate', 'stableBorrowRate', 'liquidityRate',
                     'averageStableBorrowRate'
@@ -39,6 +49,7 @@ class AaveDataCleaner:
                 df[col] = df[col].apply(lambda x: int(x))
                 df[col] = df[col] / (10**27)
 
+            # Convert all big int strings to type int
             for col in [
                     'totalLiquidity', 'totalATokenSupply',
                     'totalLiquidityAsCollateral', 'totalScaledVariableDebt',
@@ -46,9 +57,11 @@ class AaveDataCleaner:
             ]:
                 df[col] = df[col].apply(lambda x: int(x))
 
+            # Convert utilization rate to float
             df["utilizationRate"] = df["utilizationRate"].apply(
                 lambda x: float(x))
 
+            # Rename all columns
             df.rename(columns={
                 "liquidityRate": "supply_rate",
                 "totalPrincipalStableDebt": "total_stable_debt_token",
@@ -67,8 +80,10 @@ class AaveDataCleaner:
                 "total_variable_debt_token"].apply(
                     lambda x: self.decimal_unadj(val=x, token=token))
 
+            # Make all column names lowercase
             df.columns = map(str.lower, df.columns)
 
+            # Use the timestamp as the index of the dataframe
             df = df.set_index('timestamp').sort_index(ascending=True)
 
             # --------------------------------------------------------------------

@@ -1,10 +1,20 @@
+"""
+In this first example script, we define a class that allows us to query the Aave subgraph.
+This uses The Graph's Hosted Service. 
+In general, if you want to get data for a specific protocol or app, The Graph is a good
+    first place to look.
+
+"""
 # %%
-# TODO: Write detailed comments for all classes and functions
 import requests
 from datetime import datetime
 import pandas as pd
 
 # %%
+"""
+Here we define a mapping from token name to token address
+We will need the addresses to get the right data from the subgraph
+"""
 TOKEN_TO_ADDRESS = {
     "dai": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
     "usdc": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -15,7 +25,9 @@ TOKEN_TO_ADDRESS = {
 
 
 class AaveGraphConnector:
-    def __init__(self) -> None:
+    """Class for getting data from the Aave subgraph
+    """    
+    def __init__(self):
         self.url = "https://api.thegraph.com/subgraphs/name/aave/protocol-v2"
         self.lending_pool_address = "0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5".lower(
         )
@@ -40,6 +52,25 @@ class AaveGraphConnector:
 
     def get_query(self, token_address: str, start_timestamp: int,
                   end_timestamp: int):
+        """
+        Constructs the GraphQL query
+
+
+        You can play around with the Aave subgraph here: https://thegraph.com/hosted-service/subgraph/aave/protocol-v2?version=current
+
+        Let's break it down a bit.
+        - `reserve` is the outermost object we want.
+        - `(id: "{token_address})`means we're filtering for reserve objects that have 
+            `token_address` as their ID.
+        - `symbol`, `aEmissionPerSecond`, etc. are the fields of the reserve object that we want
+        - The same logic applies to `paramsHistory`:
+            - Our filter conditions go in the parentheses, in this case we are only
+                selecting the first 1000, we're sorting by timestamp, and we're 
+                only selecting elements that are between our start/end timestamps
+        - Similarly, `variableBorrowRate`, `stableBorrowRate`, etc. are the fields of the paramHistory
+            that we want to keep. 
+        """
+
         query = f"""query {{
             reserve (id: "{token_address}") {{
                 symbol
@@ -70,6 +101,10 @@ class AaveGraphConnector:
                  start_date: pd.Timestamp,
                  end_date: pd.Timestamp,
                  verbose=False):
+        """
+        Repeatedly query the subgraph until we have all data for our dates
+        (since we can only get a fixed amount of data per query)
+        """
         records = []
         start_timestamp = int(start_date.timestamp())
         end_timestamp = int(end_date.timestamp())
@@ -109,7 +144,11 @@ class AaveGraphConnector:
 
         return records
 
-    def get_reserve_stats(self, token: str, lookback_hours: int):
+def get_reserve_stats(self, token: str, lookback_hours: int):
+        """
+        Get the start and end dates based on how far we want to lookback,
+        then query the data
+        """
         end_date = pd.Timestamp.now(tz='UTC')
         start_date = end_date - pd.Timedelta(hours=lookback_hours)
 
