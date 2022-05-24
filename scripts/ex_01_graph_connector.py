@@ -1,3 +1,4 @@
+# %%
 """
 In this first example script, we define a class that allows us to query the Aave subgraph.
 This uses The Graph's Hosted Service. 
@@ -26,7 +27,7 @@ TOKEN_TO_ADDRESS = {
 
 class AaveGraphConnector:
     """Class for getting data from the Aave subgraph
-    """    
+    """
     def __init__(self):
         self.url = "https://api.thegraph.com/subgraphs/name/aave/protocol-v2"
         self.lending_pool_address = "0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5".lower(
@@ -144,11 +145,12 @@ class AaveGraphConnector:
 
         return records
 
-def get_reserve_stats(self, token: str, lookback_hours: int):
+    def get_reserve_stats(self, token: str, lookback_hours: int):
         """
         Get the start and end dates based on how far we want to lookback,
         then query the data
         """
+
         end_date = pd.Timestamp.now(tz='UTC')
         start_date = end_date - pd.Timedelta(hours=lookback_hours)
 
@@ -163,4 +165,4 @@ def get_reserve_stats(self, token: str, lookback_hours: int):
 # %%
 aave_graph = AaveGraphConnector()
 graph_data = aave_graph.get_reserve_stats(token="dai", lookback_hours=100)
-# %
+# %%

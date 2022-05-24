@@ -1,10 +1,11 @@
 # %%
 from ex_03_multiple_tokens import get_token_data
 import pandas as pd
+from typing import Dict, List
 
 
 # %%
-def get_start_end_dates(token_dfs):
+def get_start_end_dates(token_dfs: Dict[str, pd.DataFrame]):
     """
     Given a bunch of data from various tokens, find the minimum start date
     and maximum end date - these will be our overall start/end dates
@@ -21,12 +22,19 @@ def get_start_end_dates(token_dfs):
 
 
 # %%
-def slice_data(interval_dates, token_dfs):
-    """
-    `interval_dates` is a list of datetimes where we update the strategy.
-    This means we need to slice up our date into chunks representing each date.
-    For example, if we update our strategy every 2 days, we need to cut up the 
-    historical data into 2-day intervals.
+def slice_data(
+        interval_dates: List[pd.DatetimeIndex],
+        token_dfs: Dict[str, pd.DataFrame]) -> List[Dict[str, pd.DataFrame]]:
+    """Given the datetimes that we will be updating the strategy in the backtest, we need to slice up the data
+    to feed to the strategy at each timestep. For example, if we update the strategy every two days we need
+    to slice up the data into 2 day chunks. 
+
+    Args:
+        interval_dates (List[pd.DatetimeIndex]): List of dates that we will update the strategy (get an action)
+        token_dfs (Dict[str, pd.DataFrame]): Aave market data for tokens of interest (dai, usdc, usdt)
+
+    Returns:
+        data_slices (List[Dict[str, pd.DataFrame]]): List of token_dfs corresponding to each period in `interval_dates`
     """
     data_slices = []
     for datetime_idx in range(len(interval_dates) - 1):
@@ -41,12 +49,17 @@ def slice_data(interval_dates, token_dfs):
 
 
 # %%
-def get_strategy_decision(aave_data):
-    """
-    This is the function that defines our strategy.
-    This is possible the most basic strategy we can use for picking
-    the best lending position: just choose the one with the highest
-    historical average (over the previous time period)
+def get_strategy_decision(aave_data: Dict[str, pd.DataFrame]):
+    """Given the data chunk, make a decision on which lending token to choose.
+    In this case, we take use the simple strategy of picking the token with the highest
+    average supply rate over the last period.
+
+    Args:
+        aave_data (Dict[str, pd.DataFrame]): Same type as `token_dfs`. Represents a chunk of data
+                                             corresponding to a period from `interval_dates`
+
+    Returns:
+        _type_: _description_
     """
     # Choose the token with the highest mean interest rate
     best_token = None

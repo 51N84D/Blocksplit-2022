@@ -41,7 +41,7 @@ class AaveDataCleaner:
             # Convert the timestamp string to a pandas datetime object
             df["timestamp"] = pd.to_datetime(df["timestamp"], unit='s')
 
-            # Adjust every column by the constant factor that Aave uses
+            # Adjust every column by the constant factor that Aave uses under the hood
             for col in [
                     'variableBorrowRate', 'stableBorrowRate', 'liquidityRate',
                     'averageStableBorrowRate'

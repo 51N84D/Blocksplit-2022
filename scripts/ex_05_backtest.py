@@ -4,7 +4,7 @@ from ex_04_basic_strategy import get_start_end_dates, slice_data, get_strategy_d
 import pandas as pd
 
 # %%
-token_dfs = get_token_data(lookback_hours=1000)
+token_dfs = get_token_data(lookback_hours=500)
 
 # Split up time series into chunks to run strategy on
 (start_date, end_date) = get_start_end_dates(token_dfs=token_dfs)
@@ -17,7 +17,8 @@ data_slices = slice_data(interval_dates=interval_dates, token_dfs=token_dfs)
 
 # %%
 # Simulate each interest accrual
-def compound_interest(principal, start_date, end_date, interest_rate):
+def compound_interest(principal: float, start_date: pd.Timestamp,
+                      end_date: pd.Timestamp, interest_rate: float):
     time_in_years = (end_date - start_date).total_seconds() / (60 * 60 * 24 *
                                                                365)
     return (interest_rate * time_in_years + 1) * principal
